@@ -8,5 +8,6 @@ int main()
     printf("hello, what's your name?\n");
     scanf("%s", nameArr);
     printf("your name is: %s\n", nameArr);
+    printf("thanks for coming!\n");
     return 0;
 }
