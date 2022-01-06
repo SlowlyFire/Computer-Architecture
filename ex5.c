@@ -1,6 +1,7 @@
 #include <stdbool.h> 
 #define min(a,b) (a < b ? a : b)
 #define max(a,b) (a > b ? a : b) 
+#define calcIndex(i,j,n) ((i)*(n)+(j))
 typedef struct {
    unsigned char red;
    unsigned char green;
@@ -13,19 +14,6 @@ typedef struct {
     int blue;
     // int num;
 } pixel_sum;
- 
-int calcIndex(int i, int j, int n) {
-	return ((i)*(n)+(j));
-}
-
-/*
- * initialize_pixel_sum - Initializes all fields of sum to 0
- */
-void initialize_pixel_sum(pixel_sum *sum) {
-	sum->red = sum->green = sum->blue = 0;
-	// sum->num = 0;
-	return;
-}
 
 /*
  * assign_sum_to_pixel - Truncates pixel's new value to match the range [0,255]
@@ -69,7 +57,9 @@ static pixel applyKernel(int dim, int i, int j, pixel *src, int kernelSize, int 
 	int min_row, min_col, max_row, max_col;
 	pixel loop_pixel;
 
-	initialize_pixel_sum(&sum);
+	//Initializes all fields of sum to 0
+	sum.red = sum.green = sum.blue = 0;
+	// sum->num = 0;
 
 	for(ii = max(i-1, 0); ii <= min(i+1, dim-1); ii++) {
 		for(jj = max(j-1, 0); jj <= min(j+1, dim-1); jj++) {
