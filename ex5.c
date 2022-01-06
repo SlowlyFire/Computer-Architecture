@@ -1,6 +1,7 @@
 #include <stdbool.h> 
 #define min(a,b) (a < b ? a : b)
 #define max(a,b) (a > b ? a : b) 
+#define calcIndex(i,j,n) ((i)*(n)+(j))
 typedef struct {
    unsigned char red;
    unsigned char green;
@@ -13,52 +14,6 @@ typedef struct {
     int blue;
     // int num;
 } pixel_sum;
- 
-
-/* Compute min and max of two integers, respectively */
-	//int min(int a, int b) { return (a < b ? a : b); }
-	//int max(int a, int b) { return (a > b ? a : b); }
-
-int calcIndex(int i, int j, int n) {
-	return ((i)*(n)+(j));
-}
-
-/*
- * initialize_pixel_sum - Initializes all fields of sum to 0
- */
-void initialize_pixel_sum(pixel_sum *sum) {
-	sum->red = sum->green = sum->blue = 0;
-	// sum->num = 0;
-	return;
-}
-
-/*
- * assign_sum_to_pixel - Truncates pixel's new value to match the range [0,255]
- */
-static void assign_sum_to_pixel(pixel *current_pixel, pixel_sum sum, int kernelScale) {
-
-	// divide by kernel's weight
-	sum.red = sum.red / kernelScale;
-	sum.green = sum.green / kernelScale;
-	sum.blue = sum.blue / kernelScale;
-
-	// truncate each pixel's color values to match the range [0,255]
-	current_pixel->red = (unsigned char) (min(max(sum.red, 0), 255));
-	current_pixel->green = (unsigned char) (min(max(sum.green, 0), 255));
-	current_pixel->blue = (unsigned char) (min(max(sum.blue, 0), 255));
-	return;
-}
-
-/*
-* sum_pixels_by_weight - Sums pixel values, scaled by given weight
-*/
-static void sum_pixels_by_weight(pixel_sum *sum, pixel p, int weight) {
-	sum->red += ((int) p.red) * weight;
-	sum->green += ((int) p.green) * weight;
-	sum->blue += ((int) p.blue) * weight;
-	// sum->num++;
-	return;
-}
 
 /*
  *  Applies kernel for pixel at (i,j)
@@ -74,7 +29,9 @@ static pixel applyKernel(int dim, int i, int j, pixel *src, int kernelSize, int 
 	int min_row, min_col, max_row, max_col;
 	pixel loop_pixel;
 
-	initialize_pixel_sum(&sum);
+	//Initializes all fields of sum to 0
+	sum.red = sum.green = sum.blue = 0;
+	// sum->num = 0;
 
 	for(ii = max(i-1, 0); ii <= min(i+1, dim-1); ii++) {
 		for(jj = max(j-1, 0); jj <= min(j+1, dim-1); jj++) {
@@ -100,7 +57,9 @@ static pixel applyKernel(int dim, int i, int j, pixel *src, int kernelSize, int 
 			}
 
 			// apply kernel on pixel at [ii,jj]
-			sum_pixels_by_weight(&sum, src[calcIndex(ii, jj, dim)], kernel[kRow][kCol]);
+			sum.red += ((int) src[calcIndex(ii, jj, dim)].red) * kernel[kRow][kCol];
+			sum.green += ((int) src[calcIndex(ii, jj, dim)].green) * kernel[kRow][kCol];
+			sum.blue += ((int) src[calcIndex(ii, jj, dim)].blue) * kernel[kRow][kCol];
 		}
 	}
 
@@ -123,12 +82,26 @@ static pixel applyKernel(int dim, int i, int j, pixel *src, int kernelSize, int 
 			}
 		}
 		// filter out min and max
-		sum_pixels_by_weight(&sum, src[calcIndex(min_row, min_col, dim)], -1);
-		sum_pixels_by_weight(&sum, src[calcIndex(max_row, max_col, dim)], -1);
+		//Sums pixel values, scaled by given weight
+		sum.red -= ((int) src[calcIndex(min_row, min_col, dim)].red);
+		sum.green -= ((int) src[calcIndex(min_row, min_col, dim)].green);
+		sum.blue -= ((int) src[calcIndex(min_row, min_col, dim)].blue);
+		sum.red -= ((int) src[calcIndex(max_row, max_col, dim)].red);
+		sum.green -= ((int) src[calcIndex(max_row, max_col, dim)].green);
+		sum.blue -= ((int) src[calcIndex(max_row, max_col, dim)].blue);
 	}
 
 	// assign kernel's result to pixel at [i,j]
-	assign_sum_to_pixel(&current_pixel, sum, kernelScale);
+	// divide by kernel's weight
+	sum.red = sum.red / kernelScale;
+	sum.green = sum.green / kernelScale;
+	sum.blue = sum.blue / kernelScale;
+
+	// truncate each pixel's color values to match the range [0,255]
+	current_pixel.red = (unsigned char) (min(max(sum.red, 0), 255));
+	current_pixel.green = (unsigned char) (min(max(sum.green, 0), 255));
+	current_pixel.blue = (unsigned char) (min(max(sum.blue, 0), 255));
+	
 	return current_pixel;
 }
 
