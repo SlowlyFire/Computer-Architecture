@@ -1,5 +1,6 @@
 #include <stdbool.h> 
-
+#define min(a,b) (a < b ? a : b)
+#define max(a,b) (a > b ? a : b) 
 typedef struct {
    unsigned char red;
    unsigned char green;
@@ -12,11 +13,11 @@ typedef struct {
     int blue;
     // int num;
 } pixel_sum;
-
+ 
 
 /* Compute min and max of two integers, respectively */
-int min(int a, int b) { return (a < b ? a : b); }
-int max(int a, int b) { return (a > b ? a : b); }
+	//int min(int a, int b) { return (a < b ? a : b); }
+	//int max(int a, int b) { return (a > b ? a : b); }
 
 int calcIndex(int i, int j, int n) {
 	return ((i)*(n)+(j));
