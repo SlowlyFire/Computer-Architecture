@@ -16,23 +16,6 @@ typedef struct {
 } pixel_sum;
 
 /*
- * assign_sum_to_pixel - Truncates pixel's new value to match the range [0,255]
- */
-static void assign_sum_to_pixel(pixel *current_pixel, pixel_sum sum, int kernelScale) {
-
-	// divide by kernel's weight
-	sum.red = sum.red / kernelScale;
-	sum.green = sum.green / kernelScale;
-	sum.blue = sum.blue / kernelScale;
-
-	// truncate each pixel's color values to match the range [0,255]
-	current_pixel->red = (unsigned char) (min(max(sum.red, 0), 255));
-	current_pixel->green = (unsigned char) (min(max(sum.green, 0), 255));
-	current_pixel->blue = (unsigned char) (min(max(sum.blue, 0), 255));
-	return;
-}
-
-/*
 * sum_pixels_by_weight - Sums pixel values, scaled by given weight
 */
 static void sum_pixels_by_weight(pixel_sum *sum, pixel p, int weight) {
@@ -113,7 +96,16 @@ static pixel applyKernel(int dim, int i, int j, pixel *src, int kernelSize, int 
 	}
 
 	// assign kernel's result to pixel at [i,j]
-	assign_sum_to_pixel(&current_pixel, sum, kernelScale);
+	// divide by kernel's weight
+	sum.red = sum.red / kernelScale;
+	sum.green = sum.green / kernelScale;
+	sum.blue = sum.blue / kernelScale;
+
+	// truncate each pixel's color values to match the range [0,255]
+	current_pixel.red = (unsigned char) (min(max(sum.red, 0), 255));
+	current_pixel.green = (unsigned char) (min(max(sum.green, 0), 255));
+	current_pixel.blue = (unsigned char) (min(max(sum.blue, 0), 255));
+	
 	return current_pixel;
 }
 
