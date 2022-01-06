@@ -16,17 +16,6 @@ typedef struct {
 } pixel_sum;
 
 /*
-* sum_pixels_by_weight - Sums pixel values, scaled by given weight
-*/
-static void sum_pixels_by_weight(pixel_sum *sum, pixel p, int weight) {
-	sum->red += ((int) p.red) * weight;
-	sum->green += ((int) p.green) * weight;
-	sum->blue += ((int) p.blue) * weight;
-	// sum->num++;
-	return;
-}
-
-/*
  *  Applies kernel for pixel at (i,j)
  */
 static pixel applyKernel(int dim, int i, int j, pixel *src, int kernelSize, int kernel[kernelSize][kernelSize], int kernelScale, bool filter) {
@@ -68,7 +57,9 @@ static pixel applyKernel(int dim, int i, int j, pixel *src, int kernelSize, int 
 			}
 
 			// apply kernel on pixel at [ii,jj]
-			sum_pixels_by_weight(&sum, src[calcIndex(ii, jj, dim)], kernel[kRow][kCol]);
+			sum.red += ((int) src[calcIndex(ii, jj, dim)].red) * kernel[kRow][kCol];
+			sum.green += ((int) src[calcIndex(ii, jj, dim)].green) * kernel[kRow][kCol];
+			sum.blue += ((int) src[calcIndex(ii, jj, dim)].blue) * kernel[kRow][kCol];
 		}
 	}
 
@@ -91,8 +82,13 @@ static pixel applyKernel(int dim, int i, int j, pixel *src, int kernelSize, int 
 			}
 		}
 		// filter out min and max
-		sum_pixels_by_weight(&sum, src[calcIndex(min_row, min_col, dim)], -1);
-		sum_pixels_by_weight(&sum, src[calcIndex(max_row, max_col, dim)], -1);
+		//Sums pixel values, scaled by given weight
+		sum.red -= ((int) src[calcIndex(min_row, min_col, dim)].red);
+		sum.green -= ((int) src[calcIndex(min_row, min_col, dim)].green);
+		sum.blue -= ((int) src[calcIndex(min_row, min_col, dim)].blue);
+		sum.red -= ((int) src[calcIndex(max_row, max_col, dim)].red);
+		sum.green -= ((int) src[calcIndex(max_row, max_col, dim)].green);
+		sum.blue -= ((int) src[calcIndex(max_row, max_col, dim)].blue);
 	}
 
 	// assign kernel's result to pixel at [i,j]
