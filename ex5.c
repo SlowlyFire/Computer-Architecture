@@ -1,7 +1,10 @@
 #include <stdbool.h> 
+#include <math.h>
 #define min(a,b) (a < b ? a : b)
 #define max(a,b) (a > b ? a : b) 
 #define calcIndex(i,j,n) ((i)*(n)+(j))
+
+//sizeof(pixel) is 3
 typedef struct {
    unsigned char red;
    unsigned char green;
@@ -18,7 +21,7 @@ typedef struct {
 /*
  *  Applies kernel for pixel at (i,j)
  */
-static pixel applyKernel(int dim, int i, int j, pixel *src, int kernelSize, int kernel[kernelSize][kernelSize], int kernelScale, bool filter) {
+static pixel applyKernel(int dim, int i, int j, pixel *src, int kernel[3][3], int kernelScale, bool filter) {
 
 	int ii, jj;
 	int currRow, currCol;
@@ -89,6 +92,7 @@ static pixel applyKernel(int dim, int i, int j, pixel *src, int kernelSize, int 
 		//Sums pixel values, scaled by given weight
 		int result3=(min_row)*(dim)+(min_col);
 		int result4=(max_row)*(dim)+(max_col);
+
 		sum.red -= ((int) src[result3].red);
 		sum.green -= ((int) src[result3].green);
 		sum.blue -= ((int) src[result3].blue);
@@ -111,71 +115,59 @@ static pixel applyKernel(int dim, int i, int j, pixel *src, int kernelSize, int 
 	return current_pixel;
 }
 
-/*
-* Apply the kernel over each pixel.
-* Ignore pixels where the kernel exceeds bounds. These are pixels with row index smaller than kernelSize/2 and/or
-* column index smaller than kernelSize/2
-*/
-void smooth(int dim, pixel *src, pixel *dst, int kernelSize, int kernel[kernelSize][kernelSize], int kernelScale, bool filter) {
+void doConvolution(Image *image, int kernel[3][3], int kernelScale, bool filter) {
 
+	double t3= pow((double)m,2);
+	double z=t3+t3+t3;
+	pixel* pixelsImg = malloc(z);
+	pixel* backupOrg = malloc(z);
+
+	//instead of charsToPixels
+	int row, col;
+	for (row = 0 ; row < m ; row++) {
+		int t4=row*m;
+		for (col = 0 ; col < m ; col++) {
+			int t5=t4+col;
+			int t6=t5+t5+t5;
+			pixelsImg[t5].red = image->data[t6];
+			pixelsImg[t5].green = image->data[t6 + 1];
+			pixelsImg[t5].blue = image->data[t6 + 2];
+		}
+	}
+
+	//instead of copyPixels 
+	for (row = 0 ; row < m ; row++) {
+		int t7=row*m;
+		for (col = 0 ; col < m ; col++) {
+			int t8=t7+col;
+			backupOrg[t8].red = pixelsImg[t8].red;
+			backupOrg[t8].green = pixelsImg[t8].green;
+			backupOrg[t8].blue = pixelsImg[t8].blue;
+		}
+	}
+
+/* Apply the kernel over each pixel.
+* Ignore pixels where the kernel exceeds bounds. These are pixels with row index smaller than 1 and/or
+* column index smaller than 1 */
 	int i, j;
-	for (i = kernelSize / 2 ; i < dim - kernelSize / 2; i++) {
-		for (j =  kernelSize / 2 ; j < dim - kernelSize / 2 ; j++) {
-			dst[calcIndex(i, j, dim)] = applyKernel(dim, i, j, src, kernelSize, kernel, kernelScale, filter);
+	for (i = 1 ; i < m - 1; i++) {
+		int t3=i*m;
+		for (j =  1 ; j < m - 1 ; j++) {
+			pixelsImg[t3+j] = applyKernel(m, i, j, backupOrg, kernel, kernelScale, filter);
 		}
 	}
-}
 
-void charsToPixels(Image *charsImg, pixel* pixels) {
-
-	int row, col;
+	//instead of pixelsToChars
 	for (row = 0 ; row < m ; row++) {
-		for (col = 0 ; col < n ; col++) {
-
-			pixels[row*n + col].red = image->data[3*row*n + 3*col];
-			pixels[row*n + col].green = image->data[3*row*n + 3*col + 1];
-			pixels[row*n + col].blue = image->data[3*row*n + 3*col + 2];
+		int t9=row*m;
+		for (col = 0 ; col < m ; col++) {
+			int t10=row*m+col;
+			int t11=t10+t10+t10;
+			image->data[t11] = pixelsImg[t10].red;
+			image->data[t11 + 1] = pixelsImg[t10].green;
+			image->data[t11 + 2] = pixelsImg[t10].blue;
 		}
 	}
-}
-
-void pixelsToChars(pixel* pixels, Image *charsImg) {
-
-	int row, col;
-	for (row = 0 ; row < m ; row++) {
-		for (col = 0 ; col < n ; col++) {
-
-			image->data[3*row*n + 3*col] = pixels[row*n + col].red;
-			image->data[3*row*n + 3*col + 1] = pixels[row*n + col].green;
-			image->data[3*row*n + 3*col + 2] = pixels[row*n + col].blue;
-		}
-	}
-}
-
-void copyPixels(pixel* src, pixel* dst) {
-
-	int row, col;
-	for (row = 0 ; row < m ; row++) {
-		for (col = 0 ; col < n ; col++) {
-
-			dst[row*n + col].red = src[row*n + col].red;
-			dst[row*n + col].green = src[row*n + col].green;
-			dst[row*n + col].blue = src[row*n + col].blue;
-		}
-	}
-}
-
-void doConvolution(Image *image, int kernelSize, int kernel[kernelSize][kernelSize], int kernelScale, bool filter) {
-
-	pixel* pixelsImg = malloc(m*n*sizeof(pixel));
-	pixel* backupOrg = malloc(m*n*sizeof(pixel));
-
-	charsToPixels(image, pixelsImg);
-	copyPixels(pixelsImg, backupOrg);
-
-	smooth(m, backupOrg, pixelsImg, kernelSize, kernel, kernelScale, filter);
-
-	pixelsToChars(pixelsImg, image);
 
 	free(pixelsImg);
 	free(backupOrg);
@@ -199,25 +191,25 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 
 	if (flag == '1') {	
 		// blur image
-		doConvolution(image, 3, blurKernel, 9, false);
+		doConvolution(image, blurKernel, 9, false);
 
 		// write result image to file
 		writeBMP(image, srcImgpName, blurRsltImgName);	
 
 		// sharpen the resulting image
-		doConvolution(image, 3, sharpKernel, 1, false);
+		doConvolution(image, sharpKernel, 1, false);
 		
 		// write result image to file
 		writeBMP(image, srcImgpName, sharpRsltImgName);	
 	} else {
 		// apply extermum filtered kernel to blur image
-		doConvolution(image, 3, blurKernel, 7, true);
+		doConvolution(image, blurKernel, 7, true);
 
 		// write result image to file
 		writeBMP(image, srcImgpName, filteredBlurRsltImgName);
 
 		// sharpen the resulting image
-		doConvolution(image, 3, sharpKernel, 1, false);
+		doConvolution(image, sharpKernel, 1, false);
 
 		// write result image to file
 		writeBMP(image, srcImgpName, filteredSharpRsltImgName);	
