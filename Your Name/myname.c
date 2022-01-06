@@ -3,5 +3,5 @@
 
 int main()
 {
-    printf("ny name is: Gal\n");
+    printf("my name is: Gal");
 }
