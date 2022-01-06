@@ -31,12 +31,10 @@ static pixel applyKernel(int dim, int i, int j, pixel *src, int kernelSize, int 
 
 	//Initializes all fields of sum to 0
 	sum.red = sum.green = sum.blue = 0;
-	// sum->num = 0;
 
 	for(ii = max(i-1, 0); ii <= min(i+1, dim-1); ii++) {
-		for(jj = max(j-1, 0); jj <= min(j+1, dim-1); jj++) {
-
 			int kRow, kCol;
+			int t1= ii*dim;
 
 			// compute row index in kernel
 			if (ii < i) {
@@ -47,6 +45,8 @@ static pixel applyKernel(int dim, int i, int j, pixel *src, int kernelSize, int 
 				kRow = 1;
 			}
 
+		for(jj = max(j-1, 0); jj <= min(j+1, dim-1); jj++) {
+
 			// compute column index in kernel
 			if (jj < j) {
 				kCol = 0;
@@ -56,19 +56,23 @@ static pixel applyKernel(int dim, int i, int j, pixel *src, int kernelSize, int 
 				kCol = 1;
 			}
 
+			int resultKernel=kernel[kRow][kCol];
+			int resultSrc= t1 + jj;
+
 			// apply kernel on pixel at [ii,jj]
-			sum.red += ((int) src[calcIndex(ii, jj, dim)].red) * kernel[kRow][kCol];
-			sum.green += ((int) src[calcIndex(ii, jj, dim)].green) * kernel[kRow][kCol];
-			sum.blue += ((int) src[calcIndex(ii, jj, dim)].blue) * kernel[kRow][kCol];
+			sum.red += ((int) src[resultSrc].red) * resultKernel;
+			sum.green += ((int) src[resultSrc].green) * resultKernel;
+			sum.blue += ((int) src[resultSrc].blue) * resultKernel;
 		}
 	}
 
 	if (filter) {
 		// find min and max coordinates
 		for(ii = max(i-1, 0); ii <= min(i+1, dim-1); ii++) {
+			int t2=ii*dim;
 			for(jj = max(j-1, 0); jj <= min(j+1, dim-1); jj++) {
 				// check if smaller than min or higher than max and update
-				loop_pixel = src[calcIndex(ii, jj, dim)];
+				loop_pixel = src[t2+jj];
 				if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) <= min_intensity) {
 					min_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
 					min_row = ii;
@@ -83,12 +87,14 @@ static pixel applyKernel(int dim, int i, int j, pixel *src, int kernelSize, int 
 		}
 		// filter out min and max
 		//Sums pixel values, scaled by given weight
-		sum.red -= ((int) src[calcIndex(min_row, min_col, dim)].red);
-		sum.green -= ((int) src[calcIndex(min_row, min_col, dim)].green);
-		sum.blue -= ((int) src[calcIndex(min_row, min_col, dim)].blue);
-		sum.red -= ((int) src[calcIndex(max_row, max_col, dim)].red);
-		sum.green -= ((int) src[calcIndex(max_row, max_col, dim)].green);
-		sum.blue -= ((int) src[calcIndex(max_row, max_col, dim)].blue);
+		int result3=(min_row)*(dim)+(min_col);
+		int result4=(max_row)*(dim)+(max_col);
+		sum.red -= ((int) src[result3].red);
+		sum.green -= ((int) src[result3].green);
+		sum.blue -= ((int) src[result3].blue);
+		sum.red -= ((int) src[result4].red);
+		sum.green -= ((int) src[result4].green);
+		sum.blue -= ((int) src[result4].blue);
 	}
 
 	// assign kernel's result to pixel at [i,j]
