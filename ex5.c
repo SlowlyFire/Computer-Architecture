@@ -50,14 +50,6 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 					pixelsImg[t3].red = image->data[t4];
 					pixelsImg[t3].green = image->data[t4 + 1];
 					pixelsImg[t3].blue = image->data[t4 + 2];
-				}
-			}
-
-			//instead of copyPixels 
-			for (int row = 0 ; row < m ; row++) {
-				int t2=row*m;
-				for (int col = 0 ; col < m ; col++) {
-					int t3=t2+col;
 					backupOrg[t3].red = pixelsImg[t3].red;
 					backupOrg[t3].green = pixelsImg[t3].green;
 					backupOrg[t3].blue = pixelsImg[t3].blue;
@@ -69,11 +61,12 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 		* column index smaller than 1 */
 			for (int i = 1 ; i < m - 1; i++) {
 				int t2=i*m;
+				int iiLimit = min(i+1, m-1);
 				for (int j =  1 ; j < m - 1 ; j++) {
 
 					// Applies kernel for pixel at (i,j)
 					//	instead of kernelApply function
-
+						int jjLimit=min(j+1, m-1);
 						int ii, jj;
 						int currRow, currCol;
 						pixel_sum sum;
@@ -86,7 +79,7 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 						//Initializes all fields of sum to 0
 						sum.red = sum.green = sum.blue = 0;
 
-						for(ii = max(i-1, 0); ii <= min(i+1, m-1); ii++) {
+						for(ii = max(i-1, 0); ii <= iiLimit; ii++) {
 							int kRow, kCol;
 							int t3= ii*m;
 
@@ -99,7 +92,7 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 										kRow = 1;
 								}
 
-							for(jj = max(j-1, 0); jj <= min(j+1, m-1); jj++) {
+							for(jj = max(j-1, 0); jj <= jjLimit; jj++) {
 
 								// compute column index in kernel
 								if (jj < j) {
@@ -164,14 +157,6 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 				pixelsImg2[t3].red = image->data[t4];
 				pixelsImg2[t3].green = image->data[t4 + 1];
 				pixelsImg2[t3].blue = image->data[t4 + 2];
-			}
-		}
-
-		//instead of copyPixels 
-		for (int row = 0 ; row < m ; row++) {
-			int t2=row*m;
-			for (int col = 0 ; col < m ; col++) {
-				int t3=t2+col;
 				backupOrg2[t3].red = pixelsImg2[t3].red;
 				backupOrg2[t3].green = pixelsImg2[t3].green;
 				backupOrg2[t3].blue = pixelsImg2[t3].blue;
@@ -183,12 +168,14 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 	* column index smaller than 1 */
 		for (int i = 1 ; i < m - 1; i++) {
 			int t3=i*m;
+			int iiLimit=min(i+1, m-1);
 			for (int j =  1 ; j < m - 1 ; j++) {
 
 				// Applies kernel for pixel at (i,j)
 				//	instead of kernelApply function
 
 					int ii, jj;
+					int jjLimit=min(j+1, m-1);
 					int currRow, currCol;
 					pixel_sum sum;
 					pixel current_pixel;
@@ -200,7 +187,7 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 					//Initializes all fields of sum to 0
 					sum.red = sum.green = sum.blue = 0;
 
-					for(ii = max(i-1, 0); ii <= min(i+1, m-1); ii++) {
+					for(ii = max(i-1, 0); ii <= iiLimit ; ii++) {
 						int kRow, kCol;
 						int t2= ii*m;
 
@@ -213,7 +200,7 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 									kRow = 1;
 							}
 
-						for(jj = max(j-1, 0); jj <= min(j+1, m-1); jj++) {
+						for(jj = max(j-1, 0); jj <= jjLimit ; jj++) {
 
 							// compute column index in kernel
 							if (jj < j) {
