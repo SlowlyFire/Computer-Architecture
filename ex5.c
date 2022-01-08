@@ -187,7 +187,154 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 
 	if (flag == '1') {	
 		// blur image
-		doConvolution(image, blurKernel, 9, false);
+			int t3= m*m;
+			int z=t3+t3+t3;
+			pixel* pixelsImg = malloc(z);
+			pixel* backupOrg = malloc(z);
+
+			//instead of charsToPixels
+			int row, col;
+			for (row = 0 ; row < m ; row++) {
+				int t4=row*m;
+				for (col = 0 ; col < m ; col++) {
+					int t5=t4+col;
+					int t6=t5+t5+t5;
+					pixelsImg[t5].red = image->data[t6];
+					pixelsImg[t5].green = image->data[t6 + 1];
+					pixelsImg[t5].blue = image->data[t6 + 2];
+				}
+			}
+
+			//instead of copyPixels 
+			for (row = 0 ; row < m ; row++) {
+				int t7=row*m;
+				for (col = 0 ; col < m ; col++) {
+					int t8=t7+col;
+					backupOrg[t8].red = pixelsImg[t8].red;
+					backupOrg[t8].green = pixelsImg[t8].green;
+					backupOrg[t8].blue = pixelsImg[t8].blue;
+				}
+			}
+
+		/* Apply the kernel over each pixel.
+		* Ignore pixels where the kernel exceeds bounds. These are pixels with row index smaller than 1 and/or
+		* column index smaller than 1 */
+			int i, j;
+			for (i = 1 ; i < m - 1; i++) {
+				int t3=i*m;
+				for (j =  1 ; j < m - 1 ; j++) {
+
+					// Applies kernel for pixel at (i,j)
+					//	instead of kernelApply function
+
+						int ii, jj;
+						int currRow, currCol;
+						pixel_sum sum;
+						pixel current_pixel;
+						int min_intensity = 766; // arbitrary value that is higher than maximum possible intensity, which is 255*3=765
+						int max_intensity = -1; // arbitrary value that is lower than minimum possible intensity, which is 0
+						int min_row, min_col, max_row, max_col;
+						pixel loop_pixel;
+
+						//Initializes all fields of sum to 0
+						sum.red = sum.green = sum.blue = 0;
+
+						for(ii = max(i-1, 0); ii <= min(i+1, m-1); ii++) {
+							int kRow, kCol;
+							int t1= ii*m;
+
+							// compute row index in kernel
+							if (ii < i) {
+								kRow = 0;
+								} else if (ii > i) {
+										kRow = 2;
+								} else {
+										kRow = 1;
+								}
+
+							for(jj = max(j-1, 0); jj <= min(j+1, m-1); jj++) {
+
+								// compute column index in kernel
+								if (jj < j) {
+									kCol = 0;
+								} else if (jj > j) {
+										kCol = 2;
+								} else {
+										kCol = 1;
+								}
+
+								int resultSrc= t1 + jj;
+
+								// apply kernel on pixel at [ii,jj]
+								sum.red += ((int) backupOrg[resultSrc].red);
+								sum.green += ((int) backupOrg[resultSrc].green);
+								sum.blue += ((int) backupOrg[resultSrc].blue);
+							}
+						}
+
+
+					// if (filter) {
+					// 	// find min and max coordinates
+					// 	for(ii = max(i-1, 0); ii <= min(i+1, m-1); ii++) {
+					// 		int t2=ii*m;
+					// 		for(jj = max(j-1, 0); jj <= min(j+1, m-1); jj++) {
+					// 			// check if smaller than min or higher than max and update
+					// 			loop_pixel = backupOrg[t2+jj];
+					// 			if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) <= min_intensity) {
+					// 				min_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+					// 				min_row = ii;
+					// 				min_col = jj;
+					// 			}
+					// 			if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) > max_intensity) {
+					// 				max_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+					// 				max_row = ii;
+					// 				max_col = jj;
+					// 			}
+					// 		}
+					// 	}
+					// 	// filter out min and max
+					// 	//Sums pixel values, scaled by given weight
+					// 	int result3=min_row*m+min_col;
+					// 	int result4=max_row*m+max_col;
+
+					// 	sum.red -= ((int) backupOrg[result3].red);
+					// 	sum.green -= ((int) backupOrg[result3].green);
+					// 	sum.blue -= ((int) backupOrg[result3].blue);
+					// 	sum.red -= ((int) backupOrg[result4].red);
+					// 	sum.green -= ((int) backupOrg[result4].green);
+					// 	sum.blue -= ((int) backupOrg[result4].blue);
+					// }
+
+					// assign kernel's result to pixel at [i,j]
+					// divide by kernel's weight
+					sum.red = sum.red / 9;
+					sum.green = sum.green / 9;
+					sum.blue = sum.blue / 9;
+
+					// truncate each pixel's color values to match the range [0,255]
+					current_pixel.red = (unsigned char) (min(max(sum.red, 0), 255));
+					current_pixel.green = (unsigned char) (min(max(sum.green, 0), 255));
+					current_pixel.blue = (unsigned char) (min(max(sum.blue, 0), 255));
+
+					pixelsImg[t3+j] = current_pixel;
+				}
+			}
+
+			//instead of pixelsToChars
+			for (row = 0 ; row < m ; row++) {
+				int t9=row*m;
+				for (col = 0 ; col < m ; col++) {
+					int t10=t9+col;
+					int t11=t10+t10+t10;
+					image->data[t11] = pixelsImg[t10].red;
+					image->data[t11 + 1] = pixelsImg[t10].green;
+					image->data[t11 + 2] = pixelsImg[t10].blue;
+				}
+			}
+
+			free(pixelsImg);
+			free(backupOrg);
+		//doConvolution(image, blurKernel, 9, false);
 
 		// write result image to file
 		writeBMP(image, srcImgpName, blurRsltImgName);	
