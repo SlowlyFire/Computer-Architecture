@@ -256,14 +256,9 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 							sum.red += ((int) backupOrg[resultSrc].red);
 							sum.green += ((int) backupOrg[resultSrc].green);
 							sum.blue += ((int) backupOrg[resultSrc].blue);
-						}
-					}
 
-					//filter is on
-					// find min and max coordinates
-					for(ii = max(i-1, 0); ii <= min(i+1, m-1); ii++) {
-						int t2=ii*m;
-						for(jj = max(j-1, 0); jj <= min(j+1, m-1); jj++) {
+							//filter is on
+							// find min and max coordinates
 							// check if smaller than min or higher than max and update
 							loop_pixel = backupOrg[t2+jj];
 							if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) <= min_intensity) {
@@ -278,6 +273,7 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 							}
 						}
 					}
+
 					// filter out min and max
 					//Sums pixel values, scaled by given weight
 					int result3=min_row*m+min_col;
@@ -328,7 +324,7 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 		pixel* pixelsImg2 = malloc(z);
 		pixel* backupOrg2 = malloc(z);
 
-		//instead of charsToPixels
+		//instead of charsToPixels and copyPixels
 		for (int row = 0 ; row < m ; row++) {
 			int t2=row*m;
 			for (int col = 0 ; col < m ; col++) {
@@ -337,14 +333,6 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 				pixelsImg2[t3].red = image->data[t4];
 				pixelsImg2[t3].green = image->data[t4 + 1];
 				pixelsImg2[t3].blue = image->data[t4 + 2];
-			}
-		}
-
-		//instead of copyPixels 
-		for (int row = 0 ; row < m ; row++) {
-			int t2=row*m;
-			for (int col = 0 ; col < m ; col++) {
-				int t3=t2+col;
 				backupOrg2[t3].red = pixelsImg2[t3].red;
 				backupOrg2[t3].green = pixelsImg2[t3].green;
 				backupOrg2[t3].blue = pixelsImg2[t3].blue;
@@ -356,48 +344,29 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 	* column index smaller than 1 */
 		for (int i = 1 ; i < m - 1; i++) {
 			int t3=i*m;
+			int ii, jj;
+			pixel_sum sum;
+			pixel current_pixel;
+			int resultKernel;
+
 			for (int j =  1 ; j < m - 1 ; j++) {
-
-				// Applies kernel for pixel at (i,j)
-				//	instead of kernelApply function
-
-					int ii, jj;
-					int currRow, currCol;
-					pixel_sum sum;
-					pixel current_pixel;
-					int min_intensity = 766; // arbitrary value that is higher than maximum possible intensity, which is 255*3=765
-					int max_intensity = -1; // arbitrary value that is lower than minimum possible intensity, which is 0
-					int min_row, min_col, max_row, max_col;
-					pixel loop_pixel;
-
+					int iiLimit=min(i+1, m-1);
+					// Applies kernel for pixel at (i,j)
 					//Initializes all fields of sum to 0
 					sum.red = sum.green = sum.blue = 0;
 
-					for(ii = max(i-1, 0); ii <= min(i+1, m-1); ii++) {
-						int kRow, kCol;
+					for(ii = max(i-1, 0); ii <= iiLimit ; ii++) {
 						int t2= ii*m;
 
-						// compute row index in kernel
-						if (ii < i) {
-							kRow = 0;
-							} else if (ii > i) {
-									kRow = 2;
-							} else {
-									kRow = 1;
-							}
-
 						for(jj = max(j-1, 0); jj <= min(j+1, m-1); jj++) {
-
 							// compute column index in kernel
-							if (jj < j) {
-								kCol = 0;
-							} else if (jj > j) {
-									kCol = 2;
-							} else {
-									kCol = 1;
+							if (ii == i && jj == j) {
+								resultKernel=9;
+							}
+							else{
+								resultKernel=(-1);
 							}
 
-							int resultKernel=sharpKernel[kRow][kCol];
 							int resultSrc= t2 + jj;
 
 							// apply kernel on pixel at [ii,jj]
