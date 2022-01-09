@@ -66,32 +66,20 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 			int register i;
 			int register j;
 			int register t3;
-			int ii, jj;
 			pixel_sum sum;
 			pixel current_pixel;
 			for (i = 1 ; i < m - 1; i++) {
 				//int t2=i*m;
 				t2+=m;
-				int iiLimit = min(i+1, m-1);
-				
+
 				for (j =  1 ; j < m - 1 ; j++) {
 					// Applies kernel for pixel at (i,j)
-					int jjLimit=min(j+1, m-1);
 					//Initializes all fields of sum to 0
 					sum.red = sum.green = sum.blue = 0;
-
-						for(ii = max(i-1, 0); ii <= iiLimit; ii++) {
-							t3= ii*m;
-
-							for(jj = max(j-1, 0); jj <= jjLimit; jj++) {
-								int resultSrc= t3 + jj;
-
-								// apply kernel on pixel at [ii,jj]
-								sum.red += ((int) backupOrg[resultSrc].red);
-								sum.green += ((int) backupOrg[resultSrc].green);
-								sum.blue += ((int) backupOrg[resultSrc].blue);
-							}
-						}
+					// apply kernel on pixel at [ii,jj]
+					sum.red += ((int) backupOrg[(i-1)*m+j-1].red)+((int) backupOrg[(i-1)*m+j].red)+((int) backupOrg[(i-1)*m+j+1].red)+((int) backupOrg[i*m+j-1].red)+((int) backupOrg[(i)*m+j].red)+((int) backupOrg[(i)*m+j+1].red)+((int) backupOrg[(i+1)*m+j-1].red)+((int) backupOrg[(i+1)*m+j].red)+((int) backupOrg[(i+1)*m+j+1].red);
+					sum.green += ((int) backupOrg[(i-1)*m+j-1].green)+((int) backupOrg[(i-1)*m+j].green)+((int) backupOrg[(i-1)*m+j+1].green)+((int) backupOrg[i*m+j-1].green)+((int) backupOrg[(i)*m+j].green)+((int) backupOrg[(i)*m+j+1].green)+((int) backupOrg[(i+1)*m+j-1].green)+((int) backupOrg[(i+1)*m+j].green)+((int) backupOrg[(i+1)*m+j+1].green);
+					sum.blue += ((int) backupOrg[(i-1)*m+j-1].blue)+((int) backupOrg[(i-1)*m+j].blue)+((int) backupOrg[(i-1)*m+j+1].blue)+((int) backupOrg[i*m+j-1].blue)+((int) backupOrg[(i)*m+j].blue)+((int) backupOrg[(i)*m+j+1].blue)+((int) backupOrg[(i+1)*m+j-1].blue)+((int) backupOrg[(i+1)*m+j].blue)+((int) backupOrg[(i+1)*m+j+1].blue);
 
 					sum.red = sum.red / 9;
 					sum.green = sum.green / 9;
@@ -238,11 +226,11 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 	* Ignore pixels where the kernel exceeds bounds. These are pixels with row index smaller than 1 and/or
 	* column index smaller than 1 */
 		for (i = 1 ; i < m - 1; i++) {
-			int ii, jj;
+			int ii=1;
+			int jj=1;
 			int t3=i*m;
 			pixel_sum sum;
 			pixel current_pixel;
-			int iiLimit=min(i+1, m-1);
 
 			for (j =  1 ; j < m - 1 ; j++) {
 					// Applies kernel for pixel at (i,j)
@@ -252,38 +240,126 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 					int max_intensity = -1; // arbitrary value that is lower than minimum possible intensity, which is 0
 					int min_row, min_col, max_row, max_col;
 					pixel loop_pixel;
-					int jjLimit = min(j+1, m-1);
 					//Initializes all fields of sum to 0
 					sum.red = sum.green = sum.blue = 0;
 
-					for(ii = max(i-1, 0); ii <= iiLimit ; ii++) {
-						int t2= ii*m;
+					// apply kernel on pixel at [ii,jj]
+					sum.red += ((int) backupOrg[(i-1)*m+j-1].red)+((int) backupOrg[(i-1)*m+j].red)+((int) backupOrg[(i-1)*m+j+1].red)+((int) backupOrg[i*m+j-1].red)+((int) backupOrg[(i)*m+j].red)+((int) backupOrg[(i)*m+j+1].red)+((int) backupOrg[(i+1)*m+j-1].red)+((int) backupOrg[(i+1)*m+j].red)+((int) backupOrg[(i+1)*m+j+1].red);
+					sum.green += ((int) backupOrg[(i-1)*m+j-1].green)+((int) backupOrg[(i-1)*m+j].green)+((int) backupOrg[(i-1)*m+j+1].green)+((int) backupOrg[i*m+j-1].green)+((int) backupOrg[(i)*m+j].green)+((int) backupOrg[(i)*m+j+1].green)+((int) backupOrg[(i+1)*m+j-1].green)+((int) backupOrg[(i+1)*m+j].green)+((int) backupOrg[(i+1)*m+j+1].green);
+					sum.blue += ((int) backupOrg[(i-1)*m+j-1].blue)+((int) backupOrg[(i-1)*m+j].blue)+((int) backupOrg[(i-1)*m+j+1].blue)+((int) backupOrg[i*m+j-1].blue)+((int) backupOrg[(i)*m+j].blue)+((int) backupOrg[(i)*m+j+1].blue)+((int) backupOrg[(i+1)*m+j-1].blue)+((int) backupOrg[(i+1)*m+j].blue)+((int) backupOrg[(i+1)*m+j+1].blue);
 
-						for(jj = max(j-1, 0); jj <= jjLimit ; jj++) {
-							int resultSrc= t2 + jj;
+					//filter is on
+					// find min and max coordinates
+					// check if smaller than min or higher than max and update
 
-							// apply kernel on pixel at [ii,jj]
-							sum.red += ((int) backupOrg[resultSrc].red);
-							sum.green += ((int) backupOrg[resultSrc].green);
-							sum.blue += ((int) backupOrg[resultSrc].blue);
-
-							//filter is on
-							// find min and max coordinates
-							// check if smaller than min or higher than max and update
-							loop_pixel = backupOrg[t2+jj];
-							if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) <= min_intensity) {
-								min_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
-								min_row = ii;
-								min_col = jj;
-							}
-							if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) > max_intensity) {
-								max_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
-								max_row = ii;
-								max_col = jj;
-							}
-						}
+					loop_pixel = backupOrg[(ii-1)*m+jj-1];
+					if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) <= min_intensity) {
+					min_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+					min_row = ii-1;
+					min_col = jj-1;
+					}
+					if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) > max_intensity) {
+					max_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+					max_row = ii-1;
+					max_col = jj-1;
 					}
 
+					loop_pixel = backupOrg[(ii-1)*m+jj];
+					if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) <= min_intensity) {
+					min_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+					min_row = ii-1;
+					min_col = jj;
+					}
+					if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) > max_intensity) {
+					max_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+					max_row = ii-1;
+					max_col = jj;
+					}
+
+					loop_pixel = backupOrg[(ii-1)*m+jj+1];
+					if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) <= min_intensity) {
+					min_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+					min_row = ii-1;
+					min_col = jj+1;
+					}
+					if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) > max_intensity) {
+					max_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+					max_row = ii-1;
+					max_col = jj+1;
+					}
+
+					loop_pixel = backupOrg[ii*m+jj-1];
+					if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) <= min_intensity) {
+					min_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+					min_row = ii;
+					min_col = jj-1;
+					}
+					if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) > max_intensity) {
+					max_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+					max_row = ii;
+					max_col = jj-1;
+					}
+
+					loop_pixel = backupOrg[ii*m+jj];
+					if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) <= min_intensity) {
+					min_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+					min_row = ii;
+					min_col = jj;
+					}
+					if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) > max_intensity) {
+					max_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+					max_row = ii;
+					max_col = jj;
+					}
+
+					loop_pixel = backupOrg[ii*m+jj+1];
+					if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) <= min_intensity) {
+					min_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+					min_row = ii;
+					min_col = jj+1;
+					}
+					if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) > max_intensity) {
+					max_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+					max_row = ii;
+					max_col = jj+1;
+					}
+
+					loop_pixel = backupOrg[(ii+1)*m+jj-1];
+					if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) <= min_intensity) {
+					min_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+					min_row = ii+1;
+					min_col = jj-1;
+					}
+					if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) > max_intensity) {
+					max_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+					max_row = ii+1;
+					max_col = jj-1;
+					}
+
+					loop_pixel = backupOrg[(ii+1)*m+jj];
+					if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) <= min_intensity) {
+					min_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+					min_row = ii+1;
+					min_col = jj;
+					}
+					if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) > max_intensity) {
+					max_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+					max_row = ii+1;
+					max_col = jj;
+					}
+
+					loop_pixel = backupOrg[(ii+1)*m+jj+1];
+					if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) <= min_intensity) {
+					min_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+					min_row = ii+1;
+					min_col = jj+1;
+					}
+					if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) > max_intensity) {
+					max_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+					max_row = ii+1;
+					max_col = jj+1;
+					}
+	
 					// filter out min and max
 					//Sums pixel values, scaled by given weight
 					int result3=min_row*m+min_col;
