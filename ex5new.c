@@ -42,13 +42,14 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 			int register row;
 			int register col;
 			int register t2=0;
+            int register t3;
+            int register t4;
 
 			//instead of charsToPixels and copyPixels
 			for (row = 0 ; row < m ; row++) {
-				//int t2=row*m;
 				for (col = 0 ; col < m ; col++) {
-					int t3=t2+col;
-					int t4=t3+t3+t3;
+					t3=t2+col;
+					t4=t3+t3+t3;
 					pixelsImg[t3].red = image->data[t4];
 					pixelsImg[t3].green = image->data[t4 + 1];
 					pixelsImg[t3].blue = image->data[t4 + 2];
@@ -56,18 +57,17 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 					backupOrg[t3].green = pixelsImg[t3].green;
 					backupOrg[t3].blue = pixelsImg[t3].blue;
 				}
+                //int t2=row*m;
 				t2+=m;
 			}
-			t2=0;
 
 		/* Apply the kernel over each pixel.
 		* Ignore pixels where the kernel exceeds bounds. These are pixels with row index smaller than 1 and/or
 		* column index smaller than 1 */
-			int register i;
-			int register j;
-			int register t3;
+			int i,j;
 			pixel_sum sum;
 			pixel current_pixel;
+            t2=0;
 			for (i = 1 ; i < m - 1; i++) {
 				//int t2=i*m;
 				t2+=m;
@@ -95,15 +95,17 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 			}
 
 			//instead of pixelsToChars
+            t3=0;
 			for (row = 0 ; row < m ; row++) {
-				int t3=row*m;
 				for (col = 0 ; col < m ; col++) {
-					int t2=t3+col;
-					int t4=t2+t2+t2;
+					t2=t3+col;
+					t4=t2+t2+t2;
 					image->data[t4] = pixelsImg[t2].red;
 					image->data[t4 + 1] = pixelsImg[t2].green;
 					image->data[t4 + 2] = pixelsImg[t2].blue;
 				}
+                //t2=row*m;
+                t3+=m;
 			}
 
 			free(pixelsImg);
@@ -118,11 +120,11 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 		pixel* backupOrg2 = malloc(z);
 
 		//instead of charsToPixels and copyPixels
+        t2=0;
 		for (row = 0 ; row < m ; row++) {
-			int t2=row*m;
 			for (col = 0 ; col < m ; col++) {
-				int t3=t2+col;
-				int t4=t3+t3+t3;
+				t3=t2+col;
+				t4=t3+t3+t3;
 				pixelsImg2[t3].red = image->data[t4];
 				pixelsImg2[t3].green = image->data[t4 + 1];
 				pixelsImg2[t3].blue = image->data[t4 + 2];
@@ -130,6 +132,8 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 				backupOrg2[t3].green = pixelsImg2[t3].green;
 				backupOrg2[t3].blue = pixelsImg2[t3].blue;
 			}
+            //t2=row*m;
+            t2+=m;
 		}
 
 		/* Apply the kernel over each pixel.
@@ -139,7 +143,6 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 		for (i = 1 ; i < m - 1; i++) {
 			//int t3=i*m;
             t3+=m;
-
 			for (j =  1 ; j < m - 1 ; j++) {
 				// Applies kernel for pixel at (i,j)
 				//	instead of kernelApply function
@@ -161,15 +164,17 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 		}
 
 		//instead of pixelsToChars
+        t2=0;
 		for (row = 0 ; row < m ; row++) {
-			int t2=row*m;
 			for (col = 0 ; col < m ; col++) {
-				int t3=t2+col;
-				int t4=t3+t3+t3;
+				t3=t2+col;
+				t4=t3+t3+t3;
 				image->data[t4] = pixelsImg2[t3].red;
 				image->data[t4 + 1] = pixelsImg2[t3].green;
 				image->data[t4 + 2] = pixelsImg2[t3].blue;
 			}
+            //t2=row*m;
+            t2+=m;
 		}
 
 		free(pixelsImg2);
