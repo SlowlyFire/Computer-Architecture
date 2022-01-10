@@ -216,11 +216,11 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 	* Ignore pixels where the kernel exceeds bounds. These are pixels with row index smaller than 1 and/or
 	* column index smaller than 1 */
 		int i, j;
+        pixel_sum sum;
+		pixel current_pixel;
 		for (i = 1 ; i < m - 1; i++) {
 			int ii, jj;
 			int t3=i*m;
-			pixel_sum sum;
-			pixel current_pixel;
 			int iiLimit=min(i+1, m-1);
 
 			for (j =  1 ; j < m - 1 ; j++) {
@@ -335,41 +335,21 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 	/* Apply the kernel over each pixel.
 	* Ignore pixels where the kernel exceeds bounds. These are pixels with row index smaller than 1 and/or
 	* column index smaller than 1 */
-        t2=0;
+        t3=0;
 		for (i = 1 ; i < m - 1; i++) {
-			int t3=i*m;
-			int ii, jj;
-			pixel_sum sum;
-			pixel current_pixel;
-			int resultKernel;
-
+			//int t3=i*m;
+            t3+=m;
 			for (j =  1 ; j < m - 1 ; j++) {
-					int iiLimit=min(i+1, m-1);
-					// Applies kernel for pixel at (i,j)
-					//Initializes all fields of sum to 0
-					sum.red = sum.green = sum.blue = 0;
+				// Applies kernel for pixel at (i,j)
+				//	instead of kernelApply function
+				//Initializes all fields of sum to 0
+				sum.red = sum.green = sum.blue = 0;
 
-					for(ii = max(i-1, 0); ii <= iiLimit ; ii++) {
-						int t2= ii*m;
-
-						for(jj = max(j-1, 0); jj <= min(j+1, m-1); jj++) {
-							// compute column index in kernel
-							if (ii == i && jj == j) {
-								resultKernel=9;
-							}
-							else{
-								resultKernel=(-1);
-							}
-
-							int resultSrc= t2 + jj;
-
-							// apply kernel on pixel at [ii,jj]
-							sum.red += ((int) backupOrg2[resultSrc].red) * resultKernel;
-							sum.green += ((int) backupOrg2[resultSrc].green) * resultKernel;
-							sum.blue += ((int) backupOrg2[resultSrc].blue) * resultKernel;
-						}
-					}
-
+				// apply kernel on pixel at [ii,jj]
+				sum.red -= ((int) backupOrg2[(i-1)*m+j-1].red)+((int) backupOrg2[(i-1)*m+j].red)+((int) backupOrg2[(i-1)*m+j+1].red)+((int) backupOrg2[i*m+j-1].red)-((int) backupOrg2[(i)*m+j].red)*9+((int) backupOrg2[(i)*m+j+1].red)+((int) backupOrg2[(i+1)*m+j-1].red)+((int) backupOrg2[(i+1)*m+j].red)+((int) backupOrg2[(i+1)*m+j+1].red);
+				sum.green -= ((int) backupOrg2[(i-1)*m+j-1].green)+((int) backupOrg2[(i-1)*m+j].green)+((int) backupOrg2[(i-1)*m+j+1].green)+((int) backupOrg2[i*m+j-1].green)-((int) backupOrg2[(i)*m+j].green)*9+((int) backupOrg2[(i)*m+j+1].green)+((int) backupOrg2[(i+1)*m+j-1].green)+((int) backupOrg2[(i+1)*m+j].green)+((int) backupOrg2[(i+1)*m+j+1].green);
+				sum.blue -= ((int) backupOrg2[(i-1)*m+j-1].blue)+((int) backupOrg2[(i-1)*m+j].blue)+((int) backupOrg2[(i-1)*m+j+1].blue)+((int) backupOrg2[i*m+j-1].blue)-((int) backupOrg2[(i)*m+j].blue)*9+((int) backupOrg2[(i)*m+j+1].blue)+((int) backupOrg2[(i+1)*m+j-1].blue)+((int) backupOrg2[(i+1)*m+j].blue)+((int) backupOrg2[(i+1)*m+j+1].blue);
+						
 				// truncate each pixel's color values to match the range [0,255]
 				current_pixel.red = (unsigned char) (min(max(sum.red, 0), 255));
 				current_pixel.green = (unsigned char) (min(max(sum.green, 0), 255));
