@@ -18,20 +18,6 @@ typedef struct {
 
 void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sharpRsltImgName, char* filteredBlurRsltImgName, char* filteredSharpRsltImgName, char flag) {
 
-	/*
-	* [1, 1, 1]
-	* [1, 1, 1]
-	* [1, 1, 1]
-	*/
-	int blurKernel[3][3] = {{1, 1, 1}, {1, 1, 1}, {1, 1, 1}};
-
-	/*
-	* [-1, -1, -1]
-	* [-1, 9, -1]
-	* [-1, -1, -1]
-	*/
-	int sharpKernel[3][3] = {{-1,-1,-1},{-1,9,-1},{-1,-1,-1}};
-
 	if (flag == '1') {	
 		// blur image
 		//instead of doConvolution(image, blurKernel, 9, false)
@@ -39,11 +25,10 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 			int z=t1+t1+t1;
 			pixel* pixelsImg = malloc(z);
 			pixel* backupOrg = malloc(z);
-			int row, col;
 			register int t2=0;
             register int t3;
             register int t4;
-
+            int row, col;
 			//instead of charsToPixels and copyPixels
 			for (row = 0 ; row < m ; row++) {
 				for (col = 0 ; col < m ; col++) {
@@ -63,10 +48,10 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 		/* Apply the kernel over each pixel.
 		* Ignore pixels where the kernel exceeds bounds. These are pixels with row index smaller than 1 and/or
 		* column index smaller than 1 */
-			int i,j;
+            t2=0;
 			pixel_sum sum;
 			pixel current_pixel;
-            t2=0;
+            int i,j;
 			for (i = 1 ; i < m - 1; i++) {
 				//int t2=i*m;
 				t2+=m;
@@ -84,10 +69,9 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 					sum.blue = sum.blue / 9;
 
 					// truncate each pixel's color values to match the range [0,255]
-					current_pixel.red = (unsigned char) (min(max(sum.red, 0), 255));
-					current_pixel.green = (unsigned char) (min(max(sum.green, 0), 255));
-					current_pixel.blue = (unsigned char) (min(max(sum.blue, 0), 255));
-
+					current_pixel.red = (unsigned char) min(sum.red, 255);
+					current_pixel.green = (unsigned char) min(sum.green, 255);
+					current_pixel.blue = (unsigned char) min(sum.blue, 255);
 					pixelsImg[t2+j] = current_pixel;
 				}
 			}
@@ -156,7 +140,6 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 				current_pixel.red = (unsigned char) (min(max(sum.red, 0), 255));
 				current_pixel.green = (unsigned char) (min(max(sum.green, 0), 255));
 				current_pixel.blue = (unsigned char) (min(max(sum.blue, 0), 255));
-
 				pixelsImg2[t2+j] = current_pixel;
 			}
 		}
@@ -216,10 +199,10 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 		int i, j;
         pixel_sum sum;
 		pixel current_pixel;
+		t3=0;
 		for (i = 1 ; i < m - 1; i++) {
-			int ii, jj;
-			int t3=i*m;
-			int iiLimit=min(i+1, m-1);
+			//t3=i*m;
+			t3+=m;
 
 			for (j =  1 ; j < m - 1 ; j++) {
 					// Applies kernel for pixel at (i,j)
@@ -229,35 +212,130 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 					int max_intensity = -1; // arbitrary value that is lower than minimum possible intensity, which is 0
 					int min_row, min_col, max_row, max_col;
 					pixel loop_pixel;
-					int jjLimit = min(j+1, m-1);
 					//Initializes all fields of sum to 0
 					sum.red = sum.green = sum.blue = 0;
                     // apply kernel on pixel at [ii,jj]
-                	sum.red += ((int) backupOrg[(i-1)*m+j-1].red)+((int) backupOrg[(i-1)*m+j].red)+((int) backupOrg[(i-1)*m+j+1].red)+((int) backupOrg[i*m+j-1].red)+((int) backupOrg[(i)*m+j].red)+((int) backupOrg[(i)*m+j+1].red)+((int) backupOrg[(i+1)*m+j-1].red)+((int) backupOrg[(i+1)*m+j].red)+((int) backupOrg[(i+1)*m+j+1].red);
-					sum.green += ((int) backupOrg[(i-1)*m+j-1].green)+((int) backupOrg[(i-1)*m+j].green)+((int) backupOrg[(i-1)*m+j+1].green)+((int) backupOrg[i*m+j-1].green)+((int) backupOrg[(i)*m+j].green)+((int) backupOrg[(i)*m+j+1].green)+((int) backupOrg[(i+1)*m+j-1].green)+((int) backupOrg[(i+1)*m+j].green)+((int) backupOrg[(i+1)*m+j+1].green);
-					sum.blue += ((int) backupOrg[(i-1)*m+j-1].blue)+((int) backupOrg[(i-1)*m+j].blue)+((int) backupOrg[(i-1)*m+j+1].blue)+((int) backupOrg[i*m+j-1].blue)+((int) backupOrg[(i)*m+j].blue)+((int) backupOrg[(i)*m+j+1].blue)+((int) backupOrg[(i+1)*m+j-1].blue)+((int) backupOrg[(i+1)*m+j].blue)+((int) backupOrg[(i+1)*m+j+1].blue);
+					t2=t3-m+j-1;
+                	sum.red += ((int) backupOrg[t2].red)+((int) backupOrg[t2+1].red)+((int) backupOrg[t2+2].red)+((int) backupOrg[t2+m].red)+((int) backupOrg[t2+m+1].red)+((int) backupOrg[t2+m+2].red)+((int) backupOrg[t2+m+m].red)+((int) backupOrg[t2+m+m+1].red)+((int) backupOrg[t2+m+m+2].red);
+					sum.green += ((int) backupOrg[t2].green)+((int) backupOrg[t2+1].green)+((int) backupOrg[t2+2].green)+((int) backupOrg[t2+m].green)+((int) backupOrg[t2+m+1].green)+((int) backupOrg[t2+m+2].green)+((int) backupOrg[t2+m+m].green)+((int) backupOrg[t2+m+m+1].green)+((int) backupOrg[t2+m+m+2].green);
+					sum.blue += ((int) backupOrg[t2].blue)+((int) backupOrg[t2+1].blue)+((int) backupOrg[t2+2].blue)+((int) backupOrg[t2+m].blue)+((int) backupOrg[t2+m+1].blue)+((int) backupOrg[t2+m+2].blue)+((int) backupOrg[t2+m+m].blue)+((int) backupOrg[t2+m+m+1].blue)+((int) backupOrg[t2+m+m+2].blue);
 
-					for(ii = max(i-1, 0); ii <= iiLimit ; ii++) {
-						int t2= ii*m;
-
-						for(jj = max(j-1, 0); jj <= jjLimit ; jj++) {
-							int resultSrc= t2 + jj;
-							//filter is on
-							// find min and max coordinates
-							// check if smaller than min or higher than max and update
-							loop_pixel = backupOrg[t2+jj];
-							if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) <= min_intensity) {
+					loop_pixel = backupOrg[t2];
+						if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) <= min_intensity) {
 								min_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
-								min_row = ii;
-								min_col = jj;
-							}
-							if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) > max_intensity) {
-								max_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
-								max_row = ii;
-								max_col = jj;
-							}
+								min_row = i-1;
+								min_col = j-1;
 						}
-					}
+						if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) > max_intensity) {
+								max_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+								max_row = i-1;
+								max_col = j-1;
+						}
+					
+					t2++;
+					loop_pixel = backupOrg[t2];
+						if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) <= min_intensity) {
+								min_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+								min_row = i-1;
+								min_col = j;
+						}
+						if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) > max_intensity) {
+								max_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+								max_row = i-1;
+								max_col = j;
+						}
+					
+					t2++;
+					loop_pixel = backupOrg[t2];
+						if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) <= min_intensity) {
+								min_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+								min_row = i-1;
+								min_col = j+1;
+						}
+						if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) > max_intensity) {
+								max_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+								max_row = i-1;
+								max_col = j+1;
+						}
+			
+					t2=t2+m-2;
+					loop_pixel = backupOrg[t2];
+						if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) <= min_intensity) {
+								min_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+								min_row = i;
+								min_col = j-1;
+						}
+						if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) > max_intensity) {
+								max_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+								max_row = i;
+								max_col = j-1;
+						}
+
+					t2++;
+					loop_pixel = backupOrg[t2];
+						if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) <= min_intensity) {
+								min_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+								min_row = i;
+								min_col = j;
+						}
+						if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) > max_intensity) {
+								max_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+								max_row = i;
+								max_col = j;
+						}
+					
+
+					t2++;
+					loop_pixel = backupOrg[t2];
+						if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) <= min_intensity) {
+								min_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+								min_row = i;
+								min_col = j+1;
+						}
+						if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) > max_intensity) {
+								max_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+								max_row = i;
+								max_col = j+1;
+						}
+					
+					t2=t2+m-2;
+					loop_pixel = backupOrg[t2];
+						if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) <= min_intensity) {
+								min_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+								min_row = i+1;
+								min_col = j-1;
+						}
+						if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) > max_intensity) {
+								max_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+								max_row = i+1;
+								max_col = j-1;
+						}
+
+					t2++;
+					loop_pixel = backupOrg[t2];
+						if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) <= min_intensity) {
+								min_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+								min_row = i+1;
+								min_col = j;
+						}
+						if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) > max_intensity) {
+								max_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+								max_row = i+1;
+								max_col = j;
+						}
+					
+					t2++;
+					loop_pixel = backupOrg[t2];
+						if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) <= min_intensity) {
+								min_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+								min_row = i+1;
+								min_col = j+1;
+						}
+						if ((((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue)) > max_intensity) {
+								max_intensity = (((int) loop_pixel.red) + ((int) loop_pixel.green) + ((int) loop_pixel.blue));
+								max_row = i+1;
+								max_col = j+1;
+						}
 
 					// filter out min and max
 					//Sums pixel values, scaled by given weight
@@ -275,10 +353,9 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 				sum.blue = sum.blue / 7;
 
 				// truncate each pixel's color values to match the range [0,255]
-				current_pixel.red = (unsigned char) (min(max(sum.red, 0), 255));
-				current_pixel.green = (unsigned char) (min(max(sum.green, 0), 255));
-				current_pixel.blue = (unsigned char) (min(max(sum.blue, 0), 255));
-
+				current_pixel.red = (unsigned char) min(sum.red, 255);
+				current_pixel.green = (unsigned char) min(sum.green, 255);
+				current_pixel.blue = (unsigned char) min(sum.blue, 255);
 				pixelsImg[t3+j] = current_pixel;
 			}
 		}
@@ -339,15 +416,14 @@ void myfunction(Image *image, char* srcImgpName, char* blurRsltImgName, char* sh
 				sum.red = sum.green = sum.blue = 0;
 
 				// apply kernel on pixel at [ii,jj]
-				sum.red -= ((int) backupOrg2[(i-1)*m+j-1].red)+((int) backupOrg2[(i-1)*m+j].red)+((int) backupOrg2[(i-1)*m+j+1].red)+((int) backupOrg2[i*m+j-1].red)-((int) backupOrg2[(i)*m+j].red)*9+((int) backupOrg2[(i)*m+j+1].red)+((int) backupOrg2[(i+1)*m+j-1].red)+((int) backupOrg2[(i+1)*m+j].red)+((int) backupOrg2[(i+1)*m+j+1].red);
-				sum.green -= ((int) backupOrg2[(i-1)*m+j-1].green)+((int) backupOrg2[(i-1)*m+j].green)+((int) backupOrg2[(i-1)*m+j+1].green)+((int) backupOrg2[i*m+j-1].green)-((int) backupOrg2[(i)*m+j].green)*9+((int) backupOrg2[(i)*m+j+1].green)+((int) backupOrg2[(i+1)*m+j-1].green)+((int) backupOrg2[(i+1)*m+j].green)+((int) backupOrg2[(i+1)*m+j+1].green);
-				sum.blue -= ((int) backupOrg2[(i-1)*m+j-1].blue)+((int) backupOrg2[(i-1)*m+j].blue)+((int) backupOrg2[(i-1)*m+j+1].blue)+((int) backupOrg2[i*m+j-1].blue)-((int) backupOrg2[(i)*m+j].blue)*9+((int) backupOrg2[(i)*m+j+1].blue)+((int) backupOrg2[(i+1)*m+j-1].blue)+((int) backupOrg2[(i+1)*m+j].blue)+((int) backupOrg2[(i+1)*m+j+1].blue);
-						
+				t2=t3-m+j-1;
+                sum.red -= ((int) backupOrg2[t2].red)+((int) backupOrg2[t2+1].red)+((int) backupOrg2[t2+2].red)+((int) backupOrg2[t2+m].red)-((int) backupOrg2[t2+m+1].red)*9+((int) backupOrg2[t2+m+2].red)+((int) backupOrg2[t2+m+m].red)+((int) backupOrg2[t2+m+m+1].red)+((int) backupOrg2[t2+m+m+2].red);
+				sum.green -= ((int) backupOrg2[t2].green)+((int) backupOrg2[t2+1].green)+((int) backupOrg2[t2+2].green)+((int) backupOrg2[t2+m].green)-((int) backupOrg2[t2+m+1].green)*9+((int) backupOrg2[t2+m+2].green)+((int) backupOrg2[t2+m+m].green)+((int) backupOrg2[t2+m+m+1].green)+((int) backupOrg2[t2+m+m+2].green);
+				sum.blue -= ((int) backupOrg2[t2].blue)+((int) backupOrg2[t2+1].blue)+((int) backupOrg2[t2+2].blue)+((int) backupOrg2[t2+m].blue)-((int) backupOrg2[t2+m+1].blue)*9+((int) backupOrg2[t2+m+2].blue)+((int) backupOrg2[t2+m+m].blue)+((int) backupOrg2[t2+m+m+1].blue)+((int) backupOrg2[t2+m+m+2].blue);
 				// truncate each pixel's color values to match the range [0,255]
 				current_pixel.red = (unsigned char) (min(max(sum.red, 0), 255));
 				current_pixel.green = (unsigned char) (min(max(sum.green, 0), 255));
 				current_pixel.blue = (unsigned char) (min(max(sum.blue, 0), 255));
-
 				pixelsImg2[t3+j] = current_pixel;
 			}
 		}
